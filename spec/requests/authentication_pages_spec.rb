@@ -99,6 +99,19 @@ describe "Authentication" do
             it { should have_title('Sign in') }
             end
         end
+
+        describe "in the Microposts controller" do
+
+          describe "submitting to the create action" do
+            before { post microposts_path }
+            specify { expect(response).to redirect_to(signin_path) }
+          end
+
+          describe "submitting to the destroy action" do
+            before { delete micropost_path(FactoryGirl.create(:micropost)) }
+            specify { expect(response).to redirect_to(signin_path) }
+          end
+        end
       end
 
       describe "as wrong user" do
@@ -127,9 +140,14 @@ describe "Authentication" do
         before { sign_in non_admin, no_capybara: true }
 
         describe "submitting a DELETE request to the Users#destroy action" do
-          it 'should not change the usercount' do
-            expect { delete user_path(user) }.not_to change(User, :count)
-            expect(response).to redirect_to(root_url)
+          describe "database changes" do
+            it 'should not change the usercount' do
+              expect { delete user_path(user) }.not_to change(User, :count)
+            end
+          end
+          describe "redirects" do
+            before { delete user_path (user) }
+            specify { expect(response).to redirect_to(root_url) }
           end
         end
 
@@ -142,15 +160,22 @@ describe "Authentication" do
         before { sign_in admin, no_capybara: true }
 
         describe "submitting a DELETE request to the Users#destroy action for the admin itself" do
-          it 'should not change the usercount' do
-            expect { delete user_path(admin) }.not_to change(User, :count)
-            expect(response).to redirect_to(root_url)
+          describe "database changes" do
+            it 'should not change the usercount' do
+              expect { delete user_path(admin) }.not_to change(User, :count)
+            end
+          end
+          describe "redirects" do
+            before { delete user_path (admin) }
+            specify { expect(response).to redirect_to(root_url) }
           end
         end
 
         describe "submitting a DELETE request to the Users#destroy action" do
-          it 'should change the usercount' do
-            expect { delete user_path(user) }.to change(User, :count).by(-1)
+          describe "database changes" do
+            it 'should change the usercount' do
+              expect { delete user_path(user) }.to change(User, :count).by(-1)
+            end
           end
         end
       end
