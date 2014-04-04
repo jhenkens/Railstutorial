@@ -2,6 +2,8 @@ class UsersController < ApplicationController
   before_action :signed_in_user, only: [:index, :edit, :update, :destroy]
   before_action :correct_user,   only: [:edit, :update]
   before_action :admin_user,     only: :destroy
+  before_action :non_self,       only: :destroy
+  before_action :not_signed_in,  only: [:create, :new]
 
 
   def index
@@ -54,6 +56,10 @@ class UsersController < ApplicationController
 
     #Before Filters
 
+    def not_signed_in
+      redirect_to(root_url) unless !signed_in?
+    end
+
     def signed_in_user
       unless signed_in?
         store_location
@@ -68,6 +74,13 @@ class UsersController < ApplicationController
 
     def admin_user
       redirect_to(root_url) unless current_user.admin?
+    end
+
+    #Ensure that the action is not against the current user
+    #Used to prevent admins from deleting themselves
+    def non_self
+      @user = User.find(params[:id])
+      redirect_to(root_url) unless !current_user?(@user)
     end
 
 end
